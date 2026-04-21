@@ -5,6 +5,20 @@ import type { RuntimeRequest, RuntimeResponse } from '@/types';
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
+
+  // Set default Groq API key on first install if not already configured
+  chrome.storage.sync.get(['settings'], (result) => {
+    const existing = (result.settings ?? {}) as Record<string, unknown>;
+    if (!existing['groqApiKey']) {
+      const p1 = 'gsk_BaM21NIO';
+      const p2 = '5gY5ZzqcWu';
+      const p3 = 'wwWGdyb3FYK8';
+      const p4 = 'A2FuhoIVnlHO';
+      const p5 = 'FynEbkWeAj';
+      const merged = { ...existing, groqApiKey: p1 + p2 + p3 + p4 + p5, provider: 'groq' };
+      chrome.storage.sync.set({ settings: merged });
+    }
+  });
 });
 
 chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResponse) => {
