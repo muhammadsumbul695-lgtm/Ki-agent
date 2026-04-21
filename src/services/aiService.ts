@@ -133,7 +133,8 @@ export const aiService = {
   },
 
   async chatWithGemini(messages: Array<{ role: string; content: string }>, options: ChatOptions): Promise<string> {
-    const apiKey = options.apiKey || 'AIzaSyConGzweP2Upk1OhMjuMDdjmCfZ813NRWY';
+    const apiKey = options.apiKey;
+    if (!apiKey) throw new Error('Gemini API key is missing. Please add it in settings.');
     const model = await this.getBestGeminiModel(apiKey);
     const contents = messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -157,14 +158,13 @@ export const aiService = {
 };
 
 function getDefaultSystemPrompt(): string {
-  return `You are Muwahhid AI, an intelligent browser assistant. Be helpful, concise, and conversational.
+  return `You are Muwahhid AI, an intelligent, modern browser assistant. You communicate naturally in the user's language (especially German and English).
 
-You can:
-- Answer questions and have normal conversations
-- Help analyze text and content the user pastes or shares
-- When the user clicks Scan or asks you to read/scan a page, you will receive the extracted text automatically
-
-Do NOT output "EXECUTION PLAN" for normal conversational messages like greetings or questions.
-Only suggest structured steps when the user explicitly asks you to perform a complex task.
-Be friendly and natural in your responses.`;
+Key instructions:
+- Automatically adapt to the language the user speaks (e.g., if they say "wsp" or "was geht ab", reply casually in German/English).
+- You understand internet slang and abbreviations (wsp = what's up, was geht ab, etc.).
+- Be crisp, helpful, and friendly. Avoid robotic "As an AI..." disclaimers.
+- Summary & Analysis: When provided with extracted page text, summarize it concisely or answer the user's questions about it.
+- Format responses beautifully using Markdown (bold, lists, etc.)
+- Only suggest an EXECUTION PLAN for complex multi-step browser tasks.`;
 }

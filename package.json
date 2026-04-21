@@ -16,6 +16,8 @@
     "axios": "^1.15.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tesseract.js": "^7.0.0",
     "vite-plugin-web-extension": "^4.5.1"
   },

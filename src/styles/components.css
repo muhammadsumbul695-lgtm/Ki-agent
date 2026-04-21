@@ -124,15 +124,68 @@ body {
 
 .message-user {
   align-self: flex-end;
-  background: var(--bubble-user);
+  background: linear-gradient(135deg, var(--bubble-user), #323238);
   color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .message-assistant {
   align-self: flex-start;
   background: var(--surface-color);
   color: var(--text-primary);
-  border-left: 3px solid var(--accent-color);
+  border-left: 4px solid var(--accent-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Markdown Support Styles */
+.message-content p {
+  margin-bottom: 0.8em;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.message-content ul, .message-content ol {
+  margin-left: 20px;
+  margin-bottom: 0.8em;
+}
+
+.message-content code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.message-content pre {
+  background: #0f172a;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-content pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.85em;
+  color: #e2e8f0;
+}
+
+.message-content a {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.message-content h1, .message-content h2, .message-content h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-family: var(--font-title);
 }
 
 .empty-chat {

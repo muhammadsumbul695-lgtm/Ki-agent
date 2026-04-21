@@ -1,4 +1,6 @@
 import type { FC } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { ChatMessage } from '@/types';
 
 interface MessageListProps {
@@ -11,7 +13,11 @@ const MessageList: FC<MessageListProps> = ({ messages, isLoading }) => {
     <div className="messages-list">
       {messages.map((message) => (
         <article key={message.id} className={`message message-${message.role === 'assistant' ? 'assistant' : message.role} ${message.kind || ''}`}>
-          <div className="message-content">{message.content}</div>
+          <div className="message-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
         </article>
       ))}
       {isLoading && (

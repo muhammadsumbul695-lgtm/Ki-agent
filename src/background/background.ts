@@ -119,9 +119,14 @@ async function handleExecuteScan(
       return;
     }
 
+    if (activeTab.url?.startsWith('chrome://') || activeTab.url?.startsWith('edge://') || activeTab.url?.startsWith('chrome-extension://')) {
+      sendResponse({ error: 'Browser restrictions prevent scanning system pages (like new tabs or settings). Please open a regular website.' });
+      return;
+    }
+
     const pageText = await getPageText(activeTab.id);
     if (!pageText) {
-      sendResponse({ error: 'No readable text found on this page. Try scrolling into view and clicking Scan again.' });
+      sendResponse({ error: 'No readable text found. If this is a complex dynamic page, try scrolling down a bit and click Scan again.' });
       return;
     }
 
