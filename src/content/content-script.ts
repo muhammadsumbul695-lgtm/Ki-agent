@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
 
   if (request.type === 'EXECUTE_TAB_ACTION') {
     const payload = request.data as { 
-      action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY' | 'CLICK' | 'INPUT' | 'EXECUTE_JS'; 
+      action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY' | 'CLICK' | 'INPUT' | 'EXECUTE_JS' | 'GET_INTERACTIVE_ELEMENTS'; 
       value?: number | string;
       target?: string;
     };
@@ -71,6 +71,12 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
       }
       return true;
     }
+
+    if (payload.action === 'GET_INTERACTIVE_ELEMENTS') {
+      const elements = getInteractiveElements();
+      sendResponse({ actionResult: { ok: true, text: JSON.stringify(elements) } } satisfies RuntimeResponse);
+      return true;
+    }
   }
   return false;
 });
@@ -88,4 +94,26 @@ function getVisibleReadableText(): string {
 
   const joined = blocks.join('\n').slice(0, 8000);
   return joined || document.body?.innerText?.slice(0, 8000) || '';
+}
+
+function getInteractiveElements() {
+  const interactive = Array.from(document.querySelectorAll('button, input, a, select, textarea, [role="button"], [onclick]'));
+  return interactive.map(el => {
+    const htmlEl = el as HTMLElement;
+    // Generate a simple unique-ish selector
+    let selector = htmlEl.tagName.toLowerCase();
+    if (htmlEl.id) selector += `#${htmlEl.id}`;
+    else if (htmlEl.className) {
+      const firstClass = htmlEl.className.split(' ')[0];
+      if (firstClass && typeof firstClass === 'string') selector += `.${firstClass}`;
+    }
+
+    return {
+      tagName: htmlEl.tagName,
+      type: (htmlEl as any).type || '',
+      text: htmlEl.innerText?.trim().slice(0, 50) || (htmlEl as HTMLInputElement).placeholder || htmlEl.getAttribute('aria-label') || '',
+      selector: selector,
+      isVisible: htmlEl.offsetWidth > 0 && htmlEl.offsetHeight > 0
+    };
+  }).filter(item => item.isVisible && (item.text || item.selector.includes('#'))).slice(0, 50);
 }

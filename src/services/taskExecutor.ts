@@ -16,37 +16,55 @@ export const taskExecutor = {
             if (step.action.type === 'NAVIGATE' && step.action.target) {
               await chrome.tabs.update(tab.id, { url: step.action.target });
               actionResultText += ` (Navigated to ${step.action.target})`;
-              await delay(2000); // give it time to load
-            } else {
-              // DOM actions via content script
-              const res = await chrome.tabs.sendMessage(tab.id, {
-                type: 'EXECUTE_TAB_ACTION',
-                data: {
-                  action: step.action.type,
-                  target: step.action.target,
-                  value: step.action.value
-                }
-              }) as { actionResult?: { ok: boolean, message?: string, error?: string } };
-                
-              if (res?.actionResult?.ok) {
-                actionResultText += ` (Success: ${res.actionResult.message || 'Done'})`;
-              } else if (res?.actionResult?.error) {
-                actionResultText += ` (Failed: ${res.actionResult.error})`;
+              await delay(2000);
+            } else if (step.action.type === 'SWITCH_TAB' && step.action.target) {
+              const allTabs = await chrome.tabs.query({ currentWindow: true });
+              const targetTab = allTabs.find(t => 
+                t.title?.toLowerCase().includes(step.action!.target!.toLowerCase()) || 
+                t.url?.toLowerCase().includes(step.action!.target!.toLowerCase())
+              );
+              if (targetTab?.id) {
+                await chrome.tabs.update(targetTab.id, { active: true });
+                actionResultText += ` (Switched to tab: ${targetTab.title})`;
+              } else {
+                actionResultText += ` (Tab not found: ${step.action.target})`;
               }
-              await delay(500); // slight delay between DOM actions
+            } else {
+              // DOM actions via content script (CLICK, INPUT, etc)
+              const currentActive = await getActiveTab();
+              if (currentActive?.id) {
+                const res = await chrome.tabs.sendMessage(currentActive.id, {
+                  type: 'EXECUTE_TAB_ACTION',
+                  data: {
+                    action: step.action.type,
+                    target: step.action.target,
+                    value: step.action.value
+                  }
+                }) as { actionResult?: { ok: boolean, message?: string, error?: string } };
+                  
+                if (res?.actionResult?.ok) {
+                  actionResultText += ` (Success: ${res.actionResult.message || 'Done'})`;
+                } else if (res?.actionResult?.error) {
+                  actionResultText += ` (Failed: ${res.actionResult.error})`;
+                }
+              }
+              await delay(500);
             }
           } catch (e) {
-            actionResultText += ` (Runtime Error: String(e))`;
+            actionResultText += ` (Runtime Error: ${String(e)})`;
           }
         }
         items.push(actionResultText);
       }
     }
-    if (tab?.id) {
+
+    // Re-fetch active tab in case it changed during SWITCH_TAB steps
+    const currentActiveTab = await getActiveTab();
+    if (currentActiveTab?.id) {
       const extractedSegments: string[] = [];
 
       for (let i = 0; i < 3; i += 1) {
-        const read = (await chrome.tabs.sendMessage(tab.id, {
+        const read = (await chrome.tabs.sendMessage(currentActiveTab.id, {
           type: 'EXECUTE_TAB_ACTION',
           data: { action: 'READ_VISIBLE_TEXT' },
         })) as { actionResult?: { text?: string } };
@@ -56,8 +74,8 @@ export const taskExecutor = {
           extractedSegments.push(text.slice(0, 1200));
         }
 
-        if (i < 2) {
-          await chrome.tabs.sendMessage(tab.id, {
+        if (i < 2 && currentActiveTab.id) {
+          await chrome.tabs.sendMessage(currentActiveTab.id, {
             type: 'EXECUTE_TAB_ACTION',
             data: { action: 'SCROLL_BY', value: 900 },
           });
@@ -65,7 +83,7 @@ export const taskExecutor = {
         }
       }
 
-      const screenshotText = await tryOcrVisibleTab(tab.windowId);
+      const screenshotText = await tryOcrVisibleTab(currentActiveTab.windowId);
       if (screenshotText) {
         extractedSegments.push(screenshotText);
         items.push('OCR extracted text from visible scan image/screenshot.');

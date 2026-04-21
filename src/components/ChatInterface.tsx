@@ -12,6 +12,7 @@ import { storageService } from '@/services/storageService';
 const ChatInterface: FC = () => {
   const { messages, isLoading, sendMessage, currentPlan, approvePlan, rejectPlan, executeScan } = useChat();
   const { contextInfo, isContextIncluded, toggleContext } = useContextAwareness();
+  const [currentProvider, setCurrentProvider] = useState<string>('groq');
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [historyOpen, setHistoryOpen] = useState<boolean>(false);
   const [askBeforeActing, setAskBeforeActing] = useState<boolean>(true);
@@ -22,6 +23,15 @@ const ChatInterface: FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, currentPlan]);
+
+  const loadProvider = async () => {
+    const s = await storageService.getSettings();
+    setCurrentProvider(s.provider);
+  };
+
+  useEffect(() => {
+    loadProvider();
+  }, []);
 
   // Auto-open settings on first load if no API key is configured
   useEffect(() => {
@@ -50,6 +60,15 @@ const ChatInterface: FC = () => {
 
   const handleNewChat = (): void => {
     window.location.reload();
+  };
+
+  const cycleProvider = async () => {
+    const providers = ['groq', 'google', 'openrouter', 'local'];
+    const nextIdx = (providers.indexOf(currentProvider) + 1) % providers.length;
+    const next = providers[nextIdx];
+    const s = await storageService.getSettings();
+    await storageService.saveSettings({ ...s, provider: next as any });
+    setCurrentProvider(next);
   };
 
   const IconPlaceholder = ({ src, fallback, alt }: { src: string, fallback: string, alt: string }) => {
@@ -115,6 +134,9 @@ const ChatInterface: FC = () => {
               <span className="status-dot" />
               {isLoading ? 'Thinking…' : 'Online'}
             </span>
+            <div className="provider-badge" onClick={cycleProvider} title="Click to swap AI provider">
+              {currentProvider.toUpperCase()}
+            </div>
           </div>
           <div className="header-actions">
             <button className="icon-btn" title="New Chat" onClick={handleNewChat}>
@@ -141,10 +163,19 @@ const ChatInterface: FC = () => {
               plan={currentPlan}
               onApprove={() => void approvePlan(currentPlan.id)}
               onReject={() => void rejectPlan(currentPlan.id)}
+              isExecuting={isLoading}
             />
           )}
           <div ref={messagesEndRef} />
         </main>
+
+        {/* Floating Action Card */}
+        <div className="fab-container">
+          <div className="fab-card" onClick={executeScan}>
+            <IconPlaceholder src="/assets/icons/scan.png" fallback="🔍" alt="Scan" />
+            <span className="fab-text">Autonomous Scan</span>
+          </div>
+        </div>
 
         <InputBox
           onSendMessage={handleSendMessage}

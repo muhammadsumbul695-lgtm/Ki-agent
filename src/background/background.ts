@@ -198,32 +198,45 @@ async function handleUserMessage(
       /\bread (what|this|it|the)\b/i.test(payload.content) ||
       /\b(what's|whats) (on|in) (the|this|my)?\s*(tab|page)\b/i.test(payload.content);
 
+    const actionIntent = /\b(click|type|search|login|go to|navigate|find|fill|submit|press|scroll)\b/i.test(payload.content);
+
     let enrichedMessage = payload.content;
 
-    if (pageReadIntent) {
+    if (pageReadIntent || actionIntent) {
       try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const activeTab = tabs[0];
         if (activeTab?.id) {
           const pageText = await getPageText(activeTab.id);
-          if (pageText) {
-            // Build a clean context block — keep user's original question, add real page content
+          let interactiveMap = '';
+
+          if (actionIntent) {
+             const res = await chrome.tabs.sendMessage(activeTab.id, {
+                type: 'EXECUTE_TAB_ACTION',
+                data: { action: 'GET_INTERACTIVE_ELEMENTS' }
+             }) as { actionResult?: { text?: string } };
+             interactiveMap = res?.actionResult?.text || '[]';
+          }
+
+          if (pageText || interactiveMap) {
             const userQuestion = payload.content.replace(/^\[Page Context\][^\n]+\n(URL:[^\n]+\n)?/i, '').trim();
             enrichedMessage = `The user is asking: "${userQuestion}"
+            
+They are currently viewing: "${activeTab.title ?? 'this page'}"
 
-They are currently viewing this page: "${activeTab.title ?? activeTab.url ?? 'Unknown'}"
-
-Here is the actual text content extracted from that page:
-
----
-${pageText.slice(0, 7000)}
+--- PAGE TEXT CONTENT ---
+${pageText.slice(0, 8000)}
 ---
 
-Please answer the user's question based on the above page content. Be specific and reference the actual text.`;
+--- INTERACTIVE ELEMENTS (CSS SELECTORS) ---
+${interactiveMap}
+---
+
+Please use the text for analysis or the interactive elements for browser actions.`;
           }
         }
       } catch {
-        // fall through to normal reply if extraction fails
+        // fall through
       }
     }
 

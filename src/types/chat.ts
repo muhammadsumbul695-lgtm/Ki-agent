@@ -12,7 +12,7 @@ export interface PlanStep {
   id: string;
   description: string;
   action?: {
-    type: 'NAVIGATE' | 'CLICK' | 'INPUT' | 'SCROLL' | 'EXECUTE_JS';
+    type: 'NAVIGATE' | 'CLICK' | 'INPUT' | 'SCROLL' | 'EXECUTE_JS' | 'SWITCH_TAB';
     target?: string;
     value?: string;
   };
