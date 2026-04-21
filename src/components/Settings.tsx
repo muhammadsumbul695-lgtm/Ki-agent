@@ -37,6 +37,7 @@ const Settings: FC<SettingsProps> = ({ open, onClose }) => {
           onChange={(e) => setForm((p) => ({ ...p, provider: e.target.value as AppSettings['provider'] }))}
         >
           <option value="groq">Groq (Ultra Speed)</option>
+          <option value="openrouter">OpenRouter (Free Models)</option>
           <option value="google">Google Gemini (Free)</option>
           <option value="local">Ollama (Local)</option>
         </select>
@@ -59,6 +60,29 @@ const Settings: FC<SettingsProps> = ({ open, onClose }) => {
             >
               <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
               <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+            </select>
+          </>
+        )}
+
+        {form.provider === 'openrouter' && (
+          <>
+            <label className="field-label">OpenRouter API Key</label>
+            <input
+              type="password"
+              className="field-input"
+              value={form.openrouterApiKey}
+              onChange={(e) => setForm((p) => ({ ...p, openrouterApiKey: e.target.value }))}
+              placeholder="sk-or-v1-..."
+            />
+            <label className="field-label">OpenRouter Model (Free)</label>
+            <select
+              className="field-input"
+              value={form.openrouterModel}
+              onChange={(e) => setForm((p) => ({ ...p, openrouterModel: e.target.value }))}
+            >
+              <option value="google/gemma-7b-it:free">Gemma 7B (Free)</option>
+              <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (Free)</option>
+              <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B (Free)</option>
             </select>
           </>
         )}

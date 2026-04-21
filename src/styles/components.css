@@ -124,7 +124,19 @@ html, body {
   align-items: center;
   justify-content: center;
   width: 20px;
+  height: 20px;
   flex-shrink: 0;
+}
+
+.custom-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+}
+
+.hidden {
+  display: none !important;
 }
 
 /* Overlay backdrop when sidebar is open */

@@ -52,6 +52,20 @@ const ChatInterface: FC = () => {
     window.location.reload();
   };
 
+  const IconPlaceholder = ({ src, fallback, alt }: { src: string, fallback: string, alt: string }) => {
+    const [error, setError] = useState(false);
+    return error ? (
+      <span className="nav-icon">{fallback}</span>
+    ) : (
+      <img 
+        src={src} 
+        alt={alt} 
+        className="nav-icon custom-icon" 
+        onError={() => setError(true)} 
+      />
+    );
+  };
+
   return (
     <div className="app-layout">
       {/* Floating sidebar overlay */}
@@ -63,22 +77,22 @@ const ChatInterface: FC = () => {
 
         <div className="sidebar-nav">
           <button className="nav-item" onClick={() => { handleNewChat(); }}>
-            <span className="nav-icon">✨</span>
+            <IconPlaceholder src="/assets/icons/new-chat.png" fallback="✨" alt="New Chat" />
             <span className="nav-label">New Chat</span>
           </button>
           <button className="nav-item" onClick={() => { setHistoryOpen(true); setSidebarOpen(false); }}>
-            <span className="nav-icon">🕒</span>
+            <IconPlaceholder src="/assets/icons/history.png" fallback="🕒" alt="History" />
             <span className="nav-label">History</span>
           </button>
           <button className="nav-item" onClick={() => { setSettingsOpen(true); setSidebarOpen(false); }}>
-            <span className="nav-icon">⚙️</span>
+            <IconPlaceholder src="/assets/icons/settings.png" fallback="⚙️" alt="Settings" />
             <span className="nav-label">Settings</span>
           </button>
         </div>
 
         <div className="sidebar-footer">
           <button className="nav-item" onClick={() => setSidebarOpen(false)}>
-            <span className="nav-icon">◀</span>
+            <IconPlaceholder src="/assets/icons/close.png" fallback="◀" alt="Close" />
             <span className="nav-label">Close</span>
           </button>
         </div>
@@ -93,7 +107,9 @@ const ChatInterface: FC = () => {
       <div className="chat-container">
         <header className="header">
           <div className="header-left">
-            <button className="icon-btn" onClick={() => setSidebarOpen((o) => !o)} title="Menu">☰</button>
+            <button className="icon-btn" onClick={() => setSidebarOpen((o) => !o)} title="Menu">
+               <IconPlaceholder src="/assets/icons/menu.png" fallback="☰" alt="Menu" />
+            </button>
             <span className="header-title">Muwahhid AI</span>
             <span className="status-indicator">
               <span className="status-dot" />
@@ -101,15 +117,20 @@ const ChatInterface: FC = () => {
             </span>
           </div>
           <div className="header-actions">
-            <button className="icon-btn" title="New Chat" onClick={handleNewChat}>✨</button>
-            <button className="icon-btn" title="Settings" onClick={() => setSettingsOpen(true)}>⚙️</button>
+            <button className="icon-btn" title="New Chat" onClick={handleNewChat}>
+              <IconPlaceholder src="/assets/icons/new-chat.png" fallback="✨" alt="New Chat" />
+            </button>
+            <button className="icon-btn" title="Settings" onClick={() => setSettingsOpen(true)}>
+              <IconPlaceholder src="/assets/icons/settings.png" fallback="⚙️" alt="Settings" />
+            </button>
           </div>
         </header>
 
         <main className="messages-list">
           {messages.length === 0 && !isLoading && (
             <div className="empty-chat">
-              <div className="empty-logo-glow" />
+              <img src="/assets/icons/logo.png" alt="AI Agent" className="empty-logo-glow" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+              <div className="empty-logo-glow hidden default-glow" />
               <h2>How can I help you?</h2>
               <p>Type below or press / for commands.</p>
             </div>

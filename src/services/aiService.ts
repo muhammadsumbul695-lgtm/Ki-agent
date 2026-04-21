@@ -1,5 +1,5 @@
 interface ChatOptions {
-  provider?: 'local' | 'anthropic' | 'google' | 'groq';
+  provider?: 'local' | 'anthropic' | 'google' | 'groq' | 'openrouter';
   apiKey: string;
   model: string;
   localModel?: string;
@@ -18,6 +18,7 @@ export const aiService = {
     if (options.provider === 'local') return this.chatWithOllama(messages, options);
     if (options.provider === 'google') return this.chatWithGemini(messages, options);
     if (options.provider === 'groq') return this.chatWithGroq(messages, options);
+    if (options.provider === 'openrouter') return this.chatWithOpenRouter(messages, options);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -110,6 +111,40 @@ export const aiService = {
     if (!response.ok) {
       const payload = await response.text();
       throw new Error(`Groq request failed (${response.status}): ${payload}`);
+    }
+
+    const data = await response.json();
+    return data?.choices?.[0]?.message?.content ?? 'No response generated.';
+  },
+
+  async chatWithOpenRouter(messages: Array<{ role: string; content: string }>, options: ChatOptions): Promise<string> {
+    const model = options.model || 'google/gemma-7b-it:free';
+    const systemPrompt = options.systemPrompt ?? getDefaultSystemPrompt();
+    
+    const formattedMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${options.apiKey}`,
+        'HTTP-Referer': 'https://github.com/muhammadsumbul695-lgtm/Ki-agent',
+        'X-Title': 'Muwahhid AI',
+      },
+      body: JSON.stringify({
+        model,
+        messages: formattedMessages,
+        temperature: options.temperature,
+        max_tokens: options.maxTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.text();
+      throw new Error(`OpenRouter request failed (${response.status}): ${payload}`);
     }
 
     const data = await response.json();

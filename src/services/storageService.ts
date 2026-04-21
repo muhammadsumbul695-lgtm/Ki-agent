@@ -5,13 +5,15 @@ interface Message {
 }
 
 export interface Settings {
-  provider: 'local' | 'anthropic' | 'google' | 'groq';
+  provider: 'local' | 'anthropic' | 'google' | 'groq' | 'openrouter';
   apiKey: string;
   googleApiKey: string;
   groqApiKey: string;
+  openrouterApiKey: string;
   model: string;
   googleModel: string;
   groqModel: string;
+  openrouterModel: string;
   localModel: string;
   temperature: number;
   maxTokens: number;
@@ -26,9 +28,11 @@ const DEFAULT_SETTINGS: Settings = {
   apiKey: '',
   googleApiKey: '',
   groqApiKey: '',
+  openrouterApiKey: '',
   model: 'claude-3-5-sonnet-20241022',
   googleModel: 'gemini-1.5-flash',
   groqModel: 'llama-3.3-70b-versatile',
+  openrouterModel: 'google/gemma-7b-it:free',
   localModel: 'llama3.2:3b',
   temperature: 0.7,
   maxTokens: 4096,

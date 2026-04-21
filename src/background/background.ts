@@ -72,6 +72,9 @@ function getChatOptions(settings: Settings, history: any[] = []) {
   if (settings.provider === 'anthropic') {
     return { ...base, provider: 'anthropic' as const, apiKey: settings.apiKey, model: settings.model };
   }
+  if (settings.provider === 'openrouter') {
+    return { ...base, provider: 'openrouter' as const, apiKey: settings.openrouterApiKey, model: settings.openrouterModel };
+  }
   return { ...base, provider: 'local' as const, apiKey: '', model: settings.localModel, localModel: settings.localModel };
 }
 
