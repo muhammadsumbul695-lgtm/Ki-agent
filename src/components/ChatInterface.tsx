@@ -40,50 +40,85 @@ const ChatInterface: FC = () => {
     window.location.reload(); 
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+
   return (
-    <div className="chat-container">
-      <header className="header">
-        <div className="header-left">
+    <div className="app-layout">
+      {/* Left Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-header">
           <div className="logo-dot" />
-          <span className="brand-text">Muwahhid AI v1.0</span>
+          {sidebarOpen && <span className="brand-text">Muwahhid AI</span>}
         </div>
-        <div className="header-actions">
-           <button className="icon-btn" title="Refresh" onClick={() => window.location.reload()}>⚡</button>
-           <button className="icon-btn" title="New Chat" onClick={handleNewChat}>💬</button>
-           <button className="icon-btn" title="Settings" onClick={() => setSettingsOpen(true)}>⋮</button>
+        
+        <div className="sidebar-nav">
+          <button className="nav-item" onClick={handleNewChat}>
+            <span className="nav-icon">✨</span>
+            {sidebarOpen && <span className="nav-label">New Chat</span>}
+          </button>
+          <button className="nav-item" onClick={() => setHistoryOpen(true)}>
+            <span className="nav-icon">🕒</span>
+            {sidebarOpen && <span className="nav-label">History</span>}
+          </button>
+          <button className="nav-item" onClick={() => setSettingsOpen(true)}>
+            <span className="nav-icon">⚙️</span>
+            {sidebarOpen && <span className="nav-label">Settings</span>}
+          </button>
         </div>
-      </header>
+        
+        <div className="sidebar-footer">
+          <button className="nav-item toggle-sidebar-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <span className="nav-icon">{sidebarOpen ? '◀' : '▶'}</span>
+            {sidebarOpen && <span className="nav-label">Collapse</span>}
+          </button>
+        </div>
+      </aside>
 
-      <main className="messages-list">
-        {messages.length === 0 && !isLoading && (
-          <div className="empty-chat">
-            <h2>Start a conversation</h2>
-            <p>Type below to begin chatting with Muwahhid AI</p>
+      <div className="chat-container">
+        <header className="header">
+          <div className="header-left">
+            <span className="header-title">Assistant</span>
+            <span className="status-indicator">
+              <span className="status-dot"></span> Online
+            </span>
           </div>
-        )}
-        <MessageList messages={messages} isLoading={isLoading} />
-        {currentPlan && !currentPlan.approved && (
-          <PlanViewer
-            plan={currentPlan}
-            onApprove={() => void approvePlan(currentPlan.id)}
-            onReject={() => void rejectPlan(currentPlan.id)}
-          />
-        )}
-        <div ref={messagesEndRef} />
-      </main>
+          <div className="header-actions">
+             <button className="icon-btn" title="Refresh" onClick={() => window.location.reload()}>⚡</button>
+          </div>
+        </header>
 
-      <InputBox 
-        onSendMessage={handleSendMessage} 
-        onScan={executeScan}
-        isLoading={isLoading} 
-        hasContext={isContextIncluded} 
-        onToggleContext={toggleContext}
-        askBeforeActing={askBeforeActing}
-        setAskBeforeActing={setAskBeforeActing}
-      />
-      
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      <HistoryPanel open={historyOpen} messages={messages} onClose={() => setHistoryOpen(false)} />
+        <main className="messages-list">
+          {messages.length === 0 && !isLoading && (
+            <div className="empty-chat">
+              <div className="empty-logo-glow" />
+              <h2>How can I help you?</h2>
+              <p>Type below or use the slash command / to begin.</p>
+            </div>
+          )}
+          <MessageList messages={messages} isLoading={isLoading} />
+          {currentPlan && !currentPlan.approved && (
+            <PlanViewer
+              plan={currentPlan}
+              onApprove={() => void approvePlan(currentPlan.id)}
+              onReject={() => void rejectPlan(currentPlan.id)}
+            />
+          )}
+          <div ref={messagesEndRef} />
+        </main>
+
+        <InputBox 
+          onSendMessage={handleSendMessage} 
+          onScan={executeScan}
+          isLoading={isLoading} 
+          hasContext={isContextIncluded} 
+          onToggleContext={toggleContext}
+          askBeforeActing={askBeforeActing}
+          setAskBeforeActing={setAskBeforeActing}
+        />
+        
+        <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        <HistoryPanel open={historyOpen} messages={messages} onClose={() => setHistoryOpen(false)} />
+      </div>
     </div>
   );
 };
