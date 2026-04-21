@@ -1,0 +1,144 @@
+import { useCallback, useMemo, useState } from 'react';
+import type { ChatMessage, Plan, RuntimeResponse } from '@/types';
+
+const generateId = () => {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  }
+};
+
+function makeMessage(role: ChatMessage['role'], content: string, kind: ChatMessage['kind'] = 'message'): ChatMessage {
+  return {
+    id: generateId(),
+    role,
+    content,
+    timestamp: Date.now(),
+    kind,
+  };
+}
+
+export function useChat() {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    makeMessage('assistant', "Hi! I'm Muwahhid AI. What would you like me to do?"),
+  ]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
+
+  const sendMessage = useCallback(async (content: string) => {
+    setMessages((prev) => [...prev, makeMessage('user', content)]);
+    setIsLoading(true);
+    try {
+      const response = (await chrome.runtime.sendMessage({
+        type: 'SEND_MESSAGE',
+        data: { content },
+      })) as RuntimeResponse;
+
+      if (response.error) {
+        setMessages((prev) => [...prev, makeMessage('system', response.error ?? 'Request failed.')]);
+        return;
+      }
+
+      if (response.type === 'PLAN' && response.plan) {
+        setCurrentPlan(response.plan);
+        setMessages((prev) => [...prev, makeMessage('assistant', response.content ?? 'Generated a plan.', 'plan')]);
+        return;
+      }
+
+      setMessages((prev) => [...prev, makeMessage('assistant', response.content ?? '')]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const approvePlan = useCallback(async (planId: string) => {
+    if (!currentPlan) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = (await chrome.runtime.sendMessage({
+        type: 'APPROVE_PLAN',
+        data: { planId, plan: currentPlan },
+      })) as RuntimeResponse;
+
+      if (response.error) {
+        setMessages((prev) => [...prev, makeMessage('system', response.error ?? 'Execution failed.')]);
+        return;
+      }
+
+      if (response && response.results) {
+        setMessages((prev) => [
+          ...prev,
+          makeMessage('assistant', response.results?.summary ?? 'Execution completed.', 'execution'),
+        ]);
+        
+        if (response.results.items && response.results.items.length > 0) {
+          const itemsList = response.results.items;
+          setMessages((prev) => [
+            ...prev,
+            makeMessage('assistant', `Execution log:\n- ${itemsList.join('\n- ')}`, 'execution'),
+          ]);
+        }
+        
+        if (response.results.extractedText) {
+          const extractedText = response.results.extractedText;
+          setMessages((prev) => [
+            ...prev,
+            makeMessage('assistant', `OCR capture from tab:\n\n${extractedText.slice(0, 2500)}`, 'execution'),
+          ]);
+        }
+      }
+
+      if (response && response.content) {
+        setMessages((prev) => [
+          ...prev,
+          makeMessage('assistant', `Scan analysis:\n\n${response.content}`, 'execution'),
+        ]);
+      }
+      setCurrentPlan((prev) => (prev ? { ...prev, approved: true } : prev));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPlan]);
+
+  const rejectPlan = useCallback(async (planId: string) => {
+    const response = (await chrome.runtime.sendMessage({
+      type: 'REJECT_PLAN',
+      data: { planId },
+    })) as RuntimeResponse;
+    setMessages((prev) => [...prev, makeMessage('assistant', response.content ?? 'Plan rejected.')]);
+    setCurrentPlan(null);
+  }, []);
+
+  const executeScan = useCallback(async () => {
+    setIsLoading(true);
+    setMessages((prev) => [...prev, makeMessage('user', '📄 Scan: Read this page')]);
+    try {
+      const response = (await chrome.runtime.sendMessage({
+        type: 'EXECUTE_SCAN',
+        data: {},
+      })) as RuntimeResponse;
+
+      if (response.error) {
+        setMessages((prev) => [...prev, makeMessage('system', response.error ?? 'Scan failed.')]);
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        makeMessage('assistant', response.content ?? 'Scan complete. No text found on this page.'),
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({ messages, isLoading, sendMessage, currentPlan, approvePlan, rejectPlan, executeScan }),
+    [messages, isLoading, sendMessage, currentPlan, approvePlan, rejectPlan, executeScan],
+  );
+
+  return value;
+}

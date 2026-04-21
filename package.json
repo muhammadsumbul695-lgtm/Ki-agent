@@ -1,0 +1,38 @@
+{
+  "name": "muwahhid-ai-extension",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AI Chrome extension with autonomous task execution and plan approval workflow",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext ts,tsx",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "axios": "^1.15.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tesseract.js": "^7.0.0",
+    "vite-plugin-web-extension": "^4.5.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/chrome": "^0.1.40",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.9",
+    "vitest": "^4.0.8"
+  }
+}

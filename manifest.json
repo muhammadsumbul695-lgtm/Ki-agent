@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Muwahhid AI - Your Browser AI Assistant",
+  "version": "1.0.0",
+  "description": "AI-powered assistant with autonomous task execution and plan approval",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "sidePanel",
+    "clipboardRead",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://api.anthropic.com/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
+  ],
+  "action": {
+    "default_title": "Muwahhid AI",
+    "default_popup": "src/popup/popup.html"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
+  },
+  "background": {
+    "service_worker": "src/background/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content-script.ts"],
+      "run_at": "document_idle"
+    }
+  ]
+}
