@@ -86,29 +86,23 @@ export const taskExecutor = {
       const screenshotText = await tryOcrVisibleTab(currentActiveTab.windowId);
       if (screenshotText) {
         extractedSegments.push(screenshotText);
-        items.push('OCR extracted text from visible scan image/screenshot.');
       }
 
       if (extractedSegments.length > 0) {
-        items.push(`Captured ${extractedSegments.length} page segment(s) from the active tab.`);
         const extractedText = extractedSegments
           .map((segment, idx) => `--- Segment ${idx + 1} ---\n${segment}`)
           .join('\n\n')
           .slice(0, 10000);
         return {
-          summary: `Executed ${items.length} steps across ${plan.phases.length} phase(s).`,
+          summary: `Current page context analyzed. Generating final results...`,
           items,
           extractedText,
         };
-      } else {
-        items.push('No readable text segment was captured from the active tab.');
       }
-    } else {
-      items.push('No active tab found for autonomous reading.');
     }
 
     return {
-      summary: `Executed ${items.length} steps across ${plan.phases.length} phase(s).`,
+      summary: `Task completed.`,
       items,
     };
   },

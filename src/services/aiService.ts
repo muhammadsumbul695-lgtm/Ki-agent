@@ -238,7 +238,7 @@ If the user asks you to navigate, click, type, or execute Javascript on the curr
   }
 }
 \`\`\`
-Supported action types: NAVIGATE (target=URL), CLICK (target=CSS selector from the provided interactive elements map), INPUT (target=CSS selector, value=text to type), SCROLL_BY (value=number of pixels), EXECUTE_JS (value=JS code block).
+Supported action types: NAVIGATE (target=URL), CLICK (target=CSS selector from the provided interactive elements map), INPUT (target=CSS selector, value=text to type), SCROLL_BY (value=number of pixels), QUERY_DOM (target=CSS selector), SWITCH_TAB (target=Tab title/URL kw).
 
-Always try to use the 'selector' provided in the Interactive Elements map for the most reliable results.`;
+Always try to use the 'selector' provided in the Interactive Elements map for the most reliable results. For data extraction, use QUERY_DOM instead of custom JS.`;
 }

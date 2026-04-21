@@ -69,32 +69,18 @@ export function useChat() {
       }
 
       if (response && response.results) {
+        // We log execution summary silently or via a single message
         setMessages((prev) => [
           ...prev,
-          makeMessage('assistant', response.results?.summary ?? 'Execution completed.', 'execution'),
+          makeMessage('assistant', `Status: ${response.results?.summary ?? 'Autonomous task completed.'}`, 'execution'),
         ]);
-        
-        if (response.results.items && response.results.items.length > 0) {
-          const itemsList = response.results.items;
-          setMessages((prev) => [
-            ...prev,
-            makeMessage('assistant', `Execution log:\n- ${itemsList.join('\n- ')}`, 'execution'),
-          ]);
-        }
-        
-        if (response.results.extractedText) {
-          const extractedText = response.results.extractedText;
-          setMessages((prev) => [
-            ...prev,
-            makeMessage('assistant', `OCR capture from tab:\n\n${extractedText.slice(0, 2500)}`, 'execution'),
-          ]);
-        }
+        // Note: Raw execution logs and OCR segments are no longer pushed to the UI to keep it clean.
       }
 
       if (response && response.content) {
         setMessages((prev) => [
           ...prev,
-          makeMessage('assistant', `Scan analysis:\n\n${response.content}`, 'execution'),
+          makeMessage('assistant', response.content, 'execution'),
         ]);
       }
       setCurrentPlan((prev) => (prev ? { ...prev, approved: true } : prev));

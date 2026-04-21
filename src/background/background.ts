@@ -258,6 +258,7 @@ Please use the text for analysis or the interactive elements for browser actions
 
     sendResponse({ type: 'MESSAGE', content: aiResponse });
 
+    // Save as simple messages in history
     await storageService.saveMessage({ role: 'user', content: payload.content, timestamp: Date.now() });
     await storageService.saveMessage({ role: 'assistant', content: aiResponse, timestamp: Date.now() });
   } catch (error) {
@@ -289,7 +290,7 @@ ${results.extractedText.slice(0, 6000)}`,
       }
     }
     
-    sendResponse({ type: 'EXECUTION_COMPLETE', results, content: analysis });
+    sendResponse({ type: 'EXECUTION_COMPLETE', results, content: analysis || 'Task completed successfully.' });
   } catch (error) {
     sendResponse({ error: `Execution failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }

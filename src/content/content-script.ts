@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
 
   if (request.type === 'EXECUTE_TAB_ACTION') {
     const payload = request.data as { 
-      action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY' | 'CLICK' | 'INPUT' | 'EXECUTE_JS' | 'GET_INTERACTIVE_ELEMENTS'; 
+      action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY' | 'CLICK' | 'INPUT' | 'QUERY_DOM' | 'GET_INTERACTIVE_ELEMENTS'; 
       value?: number | string;
       target?: string;
     };
@@ -60,12 +60,14 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
       return true;
     }
 
-    if (payload.action === 'EXECUTE_JS' && payload.value) {
+    if (payload.action === 'QUERY_DOM' && payload.target) {
       try {
-        // Evaluate simple script snippets returned by the AI
-        // eslint-disable-next-line no-eval
-        const result = eval(String(payload.value));
-        sendResponse({ actionResult: { ok: true, message: `Executed JS block. Result: ${String(result).slice(0, 500)}` } } satisfies RuntimeResponse);
+        const elements = Array.from(document.querySelectorAll(payload.target)).map(el => ({
+          text: (el as HTMLElement).innerText?.trim().slice(0, 500),
+          value: (el as HTMLInputElement).value,
+          attributes: Array.from(el.attributes).reduce((acc, attr) => ({ ...acc, [attr.name]: attr.value }), {})
+        }));
+        sendResponse({ actionResult: { ok: true, text: JSON.stringify(elements.slice(0, 10)) } } satisfies RuntimeResponse);
       } catch (e) {
          sendResponse({ actionResult: { ok: false, error: String(e) } } satisfies RuntimeResponse);
       }
