@@ -9,7 +9,12 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
   }
 
   if (request.type === 'EXECUTE_TAB_ACTION') {
-    const payload = request.data as { action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY'; value?: number };
+    const payload = request.data as { 
+      action: 'READ_VISIBLE_TEXT' | 'SCROLL_BY' | 'CLICK' | 'INPUT' | 'EXECUTE_JS'; 
+      value?: number | string;
+      target?: string;
+    };
+    
     if (payload.action === 'READ_VISIBLE_TEXT') {
       const text = getVisibleReadableText();
       sendResponse({ actionResult: { ok: true, text } } satisfies RuntimeResponse);
@@ -17,9 +22,53 @@ chrome.runtime.onMessage.addListener((request: RuntimeRequest, _sender, sendResp
     }
 
     if (payload.action === 'SCROLL_BY') {
-      const amount = payload.value ?? 700;
+      const amount = typeof payload.value === 'number' ? payload.value : 700;
       window.scrollBy({ top: amount, behavior: 'smooth' });
       sendResponse({ actionResult: { ok: true, scrolledBy: amount } } satisfies RuntimeResponse);
+      return true;
+    }
+
+    if (payload.action === 'CLICK' && payload.target) {
+      try {
+        const el = document.querySelector(payload.target) as HTMLElement;
+        if (el) {
+          el.click();
+          sendResponse({ actionResult: { ok: true, message: `Clicked ${payload.target}` } } satisfies RuntimeResponse);
+        } else {
+          sendResponse({ actionResult: { ok: false, error: `Element not found: ${payload.target}` } } satisfies RuntimeResponse);
+        }
+      } catch (e) {
+        sendResponse({ actionResult: { ok: false, error: String(e) } } satisfies RuntimeResponse);
+      }
+      return true;
+    }
+
+    if (payload.action === 'INPUT' && payload.target && payload.value) {
+      try {
+        const el = document.querySelector(payload.target) as HTMLInputElement | HTMLTextAreaElement;
+        if (el) {
+          el.value = String(payload.value);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          sendResponse({ actionResult: { ok: true, message: `Typed into ${payload.target}` } } satisfies RuntimeResponse);
+        } else {
+          sendResponse({ actionResult: { ok: false, error: `Element not found: ${payload.target}` } } satisfies RuntimeResponse);
+        }
+      } catch (e) {
+        sendResponse({ actionResult: { ok: false, error: String(e) } } satisfies RuntimeResponse);
+      }
+      return true;
+    }
+
+    if (payload.action === 'EXECUTE_JS' && payload.value) {
+      try {
+        // Evaluate simple script snippets returned by the AI
+        // eslint-disable-next-line no-eval
+        const result = eval(String(payload.value));
+        sendResponse({ actionResult: { ok: true, message: `Executed JS block. Result: ${String(result).slice(0, 500)}` } } satisfies RuntimeResponse);
+      } catch (e) {
+         sendResponse({ actionResult: { ok: false, error: String(e) } } satisfies RuntimeResponse);
+      }
       return true;
     }
   }

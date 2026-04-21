@@ -228,6 +228,21 @@ Please answer the user's question based on the above page content. Be specific a
     }
 
     const aiResponse = await aiService.chat(enrichedMessage, options);
+    
+    // Try to parse as JSON PLAN
+    try {
+      const match = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonStr = match ? match[1] : aiResponse;
+      const parsed = JSON.parse(jsonStr);
+      if (parsed.type === 'PLAN' && parsed.plan) {
+         sendResponse({ type: 'PLAN', plan: parsed.plan, content: 'I have generated a plan to perform actions on this page.' });
+         // Return here so it drops into the UI as a Plan card
+         return;
+      }
+    } catch {
+       // fallback to normal text message
+    }
+
     sendResponse({ type: 'MESSAGE', content: aiResponse });
 
     await storageService.saveMessage({ role: 'user', content: payload.content, timestamp: Date.now() });

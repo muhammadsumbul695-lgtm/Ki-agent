@@ -35,6 +35,8 @@ export interface RuntimeResponse {
     ok: boolean;
     text?: string;
     scrolledBy?: number;
+    message?: string;
+    error?: string;
   };
   error?: string;
 }

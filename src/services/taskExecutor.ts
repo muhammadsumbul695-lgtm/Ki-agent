@@ -5,13 +5,43 @@ export const taskExecutor = {
   async execute(plan: Plan): Promise<ExecutionResult> {
     const items: string[] = [];
 
+    const tab = await getActiveTab();
+
     for (const phase of plan.phases) {
       for (const step of phase.steps) {
-        items.push(`Completed: ${phase.title} -> ${step.description}`);
+        let actionResultText = `Completed: ${phase.title} -> ${step.description}`;
+        
+        if (step.action && tab?.id) {
+          try {
+            if (step.action.type === 'NAVIGATE' && step.action.target) {
+              await chrome.tabs.update(tab.id, { url: step.action.target });
+              actionResultText += ` (Navigated to ${step.action.target})`;
+              await delay(2000); // give it time to load
+            } else {
+              // DOM actions via content script
+              const res = await chrome.tabs.sendMessage(tab.id, {
+                type: 'EXECUTE_TAB_ACTION',
+                data: {
+                  action: step.action.type,
+                  target: step.action.target,
+                  value: step.action.value
+                }
+              }) as { actionResult?: { ok: boolean, message?: string, error?: string } };
+                
+              if (res?.actionResult?.ok) {
+                actionResultText += ` (Success: ${res.actionResult.message || 'Done'})`;
+              } else if (res?.actionResult?.error) {
+                actionResultText += ` (Failed: ${res.actionResult.error})`;
+              }
+              await delay(500); // slight delay between DOM actions
+            }
+          } catch (e) {
+            actionResultText += ` (Runtime Error: String(e))`;
+          }
+        }
+        items.push(actionResultText);
       }
     }
-
-    const tab = await getActiveTab();
     if (tab?.id) {
       const extractedSegments: string[] = [];
 

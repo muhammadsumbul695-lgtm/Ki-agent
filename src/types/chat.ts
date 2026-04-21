@@ -11,6 +11,11 @@ export interface ChatMessage {
 export interface PlanStep {
   id: string;
   description: string;
+  action?: {
+    type: 'NAVIGATE' | 'CLICK' | 'INPUT' | 'SCROLL' | 'EXECUTE_JS';
+    target?: string;
+    value?: string;
+  };
 }
 
 export interface PlanPhase {
