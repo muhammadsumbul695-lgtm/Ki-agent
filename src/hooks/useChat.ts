@@ -80,7 +80,7 @@ export function useChat() {
       if (response && response.content) {
         setMessages((prev) => [
           ...prev,
-          makeMessage('assistant', response.content, 'execution'),
+          makeMessage('assistant', response.content || '', 'execution'),
         ]);
       }
       setCurrentPlan((prev) => (prev ? { ...prev, approved: true } : prev));

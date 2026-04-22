@@ -24,15 +24,15 @@ export interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  provider: 'groq',
+  provider: 'openrouter',
   apiKey: '',
   googleApiKey: '',
   groqApiKey: '',
-  openrouterApiKey: '',
+  openrouterApiKey: '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',
   model: 'claude-3-5-sonnet-20241022',
   googleModel: 'gemini-1.5-flash',
   groqModel: 'llama-3.3-70b-versatile',
-  openrouterModel: 'google/gemma-7b-it:free',
+  openrouterModel: 'google/gemma-2-9b-it:free',
   localModel: 'llama3.2:3b',
   temperature: 0.7,
   maxTokens: 4096,
