@@ -11,6 +11,12 @@ interface InputBoxProps {
   setAskBeforeActing: (val: boolean) => void;
 }
 
+const IconImg = ({ src, fallback }: { src: string; fallback: string }) => {
+  const [error, setError] = useState(false);
+  if (error) return <span>{fallback}</span>;
+  return <img src={src} className="nav-icon" style={{ width: '18px', height: '18px' }} onError={() => setError(true)} />;
+};
+
 const InputBox: FC<InputBoxProps> = ({ 
   onSendMessage, 
   onScan, 
@@ -68,14 +74,14 @@ const InputBox: FC<InputBoxProps> = ({
               title="Include Context"
               onClick={onToggleContext}
             >
-              ↗
+              <IconImg src="/assets/icons/context.png" fallback="↗" />
             </button>
             <button 
               className="btn-round" 
-              title="Attach File"
+              title="Autonomous Scan"
               onClick={() => void onScan()}
             >
-              ➕
+              <IconImg src="/assets/icons/new-chat.png" fallback="➕" />
             </button>
             <button 
               className="btn-round btn-send" 
@@ -83,7 +89,7 @@ const InputBox: FC<InputBoxProps> = ({
               onClick={() => void handleSend()} 
               type="button"
             >
-              ↑
+              <IconImg src="/assets/icons/send.png" fallback="↑" />
             </button>
           </div>
         </div>
